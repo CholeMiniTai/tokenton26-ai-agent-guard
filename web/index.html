@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>TokenTon26 AI Agent Guard</title>
+<style>body{font-family:system-ui;max-width:900px;margin:20px auto;padding:0 16px}pre{background:#111;color:#0f0;padding:12px;border-radius:8px;overflow:auto}.card{border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}</style>
+</head>
+<body>
+<h1>TokenTon26 AI Track — Agentic Risk Guard (MVP)</h1>
+<div class="card">
+  <p>Reads on-chain wallet balance, runs decision logic, applies guardrails, outputs safe action.</p>
+  <button id="run">Run Agent Loop</button>
+</div>
+<pre id="out">Click "Run Agent Loop"</pre>
+<script>
+async function rpc(method, params=[]) {
+  const res = await fetch('https://api.devnet.solana.com', {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
+  const data = await res.json(); if(data.error) throw new Error(JSON.stringify(data.error)); return data.result;
+}
+function decide(sol){ if(sol<0.2) return {action:'HOLD',reason:'insufficient_fee_buffer'}; if(sol<1) return {action:'REDUCE_RISK',reason:'low_buffer'}; return {action:'ALLOW_EXECUTION',reason:'healthy_buffer'}; }
+function guardrails(d){ if(d.action==='ALLOW_EXECUTION') return {...d,action:'SIMULATE_ONLY',guardrail:'no_autonomous_send_in_v0'}; return d; }
+document.getElementById('run').onclick=async()=>{
+  const wallet='ADsKa76Gs1Dd3j7Y8oSspi2Bs9HYf3q8ZDvLktA1Pyn5';
+  try{
+    const b=await rpc('getBalance',[wallet,{commitment:'confirmed'}]);
+    const sol=(b.value||0)/1e9; const raw=decide(sol); const safe=guardrails(raw);
+    document.getElementById('out').textContent=JSON.stringify({ts:new Date().toISOString(),wallet,balanceSOL:sol,decision:safe},null,2);
+  }catch(e){document.getElementById('out').textContent='ERROR: '+e.message}
+};
+</script>
+</body></html>
