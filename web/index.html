@@ -7,9 +7,10 @@
 <h1>TokenTon26 AI Track — Agentic Risk Guard (MVP)</h1>
 <div class="card">
   <p>Reads on-chain wallet balance, runs decision logic, applies guardrails, outputs safe action.</p>
+  <label>Wallet address: <input id="wallet" placeholder="Enter wallet address" style="width:420px" /></label>
   <button id="run">Run Agent Loop</button>
 </div>
-<pre id="out">Click "Run Agent Loop"</pre>
+<pre id="out">Set wallet address, then click "Run Agent Loop"</pre>
 <script>
 async function rpc(method, params=[]) {
   const res = await fetch('https://api.devnet.solana.com', {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
@@ -17,8 +18,15 @@ async function rpc(method, params=[]) {
 }
 function decide(sol){ if(sol<0.2) return {action:'HOLD',reason:'insufficient_fee_buffer'}; if(sol<1) return {action:'REDUCE_RISK',reason:'low_buffer'}; return {action:'ALLOW_EXECUTION',reason:'healthy_buffer'}; }
 function guardrails(d){ if(d.action==='ALLOW_EXECUTION') return {...d,action:'SIMULATE_ONLY',guardrail:'no_autonomous_send_in_v0'}; return d; }
+const walletInput = document.getElementById('wallet');
+walletInput.value = localStorage.getItem('WATCH_WALLET') || '';
 document.getElementById('run').onclick=async()=>{
-  const wallet='ADsKa76Gs1Dd3j7Y8oSspi2Bs9HYf3q8ZDvLktA1Pyn5';
+  const wallet=(walletInput.value || '').trim();
+  if(!wallet){
+    document.getElementById('out').textContent='ERROR: wallet address required';
+    return;
+  }
+  localStorage.setItem('WATCH_WALLET', wallet);
   try{
     const b=await rpc('getBalance',[wallet,{commitment:'confirmed'}]);
     const sol=(b.value||0)/1e9; const raw=decide(sol); const safe=guardrails(raw);

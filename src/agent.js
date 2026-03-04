@@ -1,5 +1,10 @@
 const RPC = process.env.SOLANA_RPC || 'https://api.devnet.solana.com';
-const WATCH_WALLET = process.env.WATCH_WALLET || 'ADsKa76Gs1Dd3j7Y8oSspi2Bs9HYf3q8ZDvLktA1Pyn5';
+const WATCH_WALLET = process.env.WATCH_WALLET;
+
+if (!WATCH_WALLET) {
+  console.error('[config-error] WATCH_WALLET is required via environment variable');
+  process.exit(1);
+}
 
 async function rpc(method, params = []) {
   const res = await fetch(RPC, {

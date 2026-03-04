@@ -43,6 +43,11 @@ Build an AI-powered on-chain agent system (with guardrails) for TokenTon26 AI Tr
 ## Demo
 - Static demo page: `web/index.html`
 - Run local static server: `python3 -m http.server 8080` then open `http://localhost:8080/web/`
+- Wallet address is user-provided at runtime (no hardcoded wallet in source)
+
+## Runtime config
+- `WATCH_WALLET` is required for `src/agent.js`
+- Example: `WATCH_WALLET=<wallet_pubkey> node src/agent.js`
 
 ## Submission Assets
 - Architecture doc: `docs/ARCHITECTURE.md`
